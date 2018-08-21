@@ -10,7 +10,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 What things you need to install the software and how to install them
 
-* Node.JS
+* [Node.JS](https://nodejs.org/en/)
 * Electron
 
 ```
@@ -35,25 +35,13 @@ until finished
 
 End with an example of getting some data out of the system or using it for a little demo
 
-## Running the tests
+## Open Items
 
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
+* Take ID number from badge scanner and compare to google spreadsheet of known members
+  * Check if ID number matches any number in column of ID's
+    * This may need to be logic in the spreadsheet: https://stackoverflow.com/questions/41943500/google-spreadsheet-api-v4-find-value
+* If ID number matches one in the spreadsheet, need to somehow "check in" that member in the Mindbody software that maker's edge uses
+* If ID number doesn't match one in the spreadsheet, display some kind of error message that notifies the user that they may not be a member
 
 ## Deployment
 
