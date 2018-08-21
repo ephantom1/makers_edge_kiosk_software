@@ -13,13 +13,15 @@
     </form>
 <!-- Start Javascript -->
     <script type="text/javascript">
-    window.onload=function() {  // wait for window to fully load
-      document.getElementById('ID_Number').oninput=function() { // perform below script when data is entered in form
-        if (this.value.length >= 9) { // check if length of data entry is 9 or greater
-          document.getElementById('ID_Form').submit(); // if length is 9 or greater, submit the form
-        }
+      var ID;
+      window.onload=function() {  // wait for window to fully load
+        document.getElementById('ID_Number').oninput=function() { // perform below script when data is entered in form
+          if (this.value.length >= 9) { // check if length of data entry is 9 or greater
+            ID = document.getElementById('ID_Form');
+            document.getElementById('ID_Form').submit(); // if length is 9 or greater, submit the form
+          }
+        };
       };
-    };
     </script>
 <!-- End Javascript -->
   </body>
