@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Sign in Screen</title>
+  </head>
+  <body>
+    <h1>Welcome to Maker's Edge</h1>
+    Please scan your badge.
+<!-- Create form to enter ID number -->
+    <form id="ID_Form" method="post">
+      <input id="ID_Number" name="ID_Number" type="text">
+    </form>
+<!-- Start Javascript -->
+    <script type="text/javascript">
+    window.onload=function() {  // wait for window to fully load
+      document.getElementById('ID_Number').oninput=function() { // perform below script when data is entered in form
+        if (this.value.length >= 9) { // check if length of data entry is 9 or greater
+          document.getElementById('ID_Form').submit(); // if length is 9 or greater, submit the form
+        }
+      };
+    };
+    </script>
+<!-- End Javascript -->
+  </body>
+</html>
