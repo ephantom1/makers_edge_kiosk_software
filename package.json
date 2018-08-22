@@ -1,11 +1,15 @@
 {
-  "name": "electron-hello-world",
+  "name": "Sign_In_Kiosk",
   "version": "0.1.0",
   "main": "main.js",
   "devDependencies": {
     "electron": "^2.0.7"
   },
   "scripts": {
-    "start" : "electron ."
+    "start": "electron ."
+  },
+  "dependencies": {
+    "google-auth-library": "^1.6.1",
+    "googleapis": "^27.0.0"
   }
 }
