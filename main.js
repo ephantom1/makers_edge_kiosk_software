@@ -47,7 +47,7 @@ ipcMain.on('async', (event, ID_Number) => {
   fs.readFile('credentials.json', (err, content) => {
     if (err) return console.log('Error loading client secret file:', err);
     // Authorize a client with credentials, then call the Google Sheets API.
-    authorize(JSON.parse(content), listMajors);
+    authorize(JSON.parse(content), listMajors, ID_Number);
   });
 
 })
@@ -78,7 +78,7 @@ app.on('activate', function () {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
+function authorize(credentials, callback, ID_Number) {
   const {client_secret, client_id, redirect_uris} = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
       client_id, client_secret, redirect_uris[0]);
@@ -87,7 +87,7 @@ function authorize(credentials, callback) {
   fs.readFile(TOKEN_PATH, (err, token) => {
     if (err) return getNewToken(oAuth2Client, callback);
     oAuth2Client.setCredentials(JSON.parse(token));
-    callback(oAuth2Client);
+    callback(oAuth2Client, ID_Number);
   });
 }
 
@@ -152,8 +152,20 @@ function getNewToken(oAuth2Client, callback) {
 
 //Uses test spreadsheet located here: https://docs.google.com/spreadsheets/d/1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI/edit#gid=0
 
-function listMajors(auth) {
+function listMajors(auth, ID_Number) {
   const sheets = google.sheets({version: 'v4', auth});
+  var name
+
+  sheets.spreadsheets.values.update({
+    spreadsheetId: '1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI',
+    range: 'Sheet1!D2',
+    valueInputOption: 'USER_ENTERED',
+    resource: {range: 'Sheet1!D2',
+      majorDimension: 'ROWS',
+      values: [[ID_Number]]}
+  }, (err, res) => {
+    if (err) return console.log('The API returned an error: ' + err);
+  });
 
   sheets.spreadsheets.values.update({
     spreadsheetId: '1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI',
@@ -165,4 +177,16 @@ function listMajors(auth) {
   }, (err, res) => {
     if (err) return console.log('The API returned an error: ' + err);
   });
+
+  name = sheets.spreadsheets.values.get({
+    spreadsheetId: '1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI',
+    range: 'Sheet1!D1',
+    majorDimension: 'ROWS',
+    valueRenderOption: 'FORMATTED_VALUE'
+  }, (err, res) => {
+    if (err) return console.log('The API returned an error: ' + err);
+  });
+    console.log(name)
+    console.log(JSON.stringify(name, null, 2))
+
 }
