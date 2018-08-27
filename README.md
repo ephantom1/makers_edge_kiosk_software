@@ -1,6 +1,6 @@
 # Maker's Edge Kiosk Software
 
-Software to allow members to scan their name badges with a badge scanner to automatically check in. This software is intended to run on a Raspberry Pi
+Software to allow members to scan their name badges with a badge scanner to automatically check in. This software is intended to run on a Raspberry Pi, but should work on any operating system
 
 ## Getting Started
 
@@ -38,11 +38,10 @@ End with an example of getting some data out of the system or using it for a lit
 
 ## Open Items
 
-* Take ID number from badge scanner and compare to google spreadsheet of known members
-  * Check if ID number matches any number in column of ID's
-    * This may need to be logic in the spreadsheet: https://stackoverflow.com/questions/41943500/google-spreadsheet-api-v4-find-value
-* If ID number matches one in the spreadsheet, need to somehow "check in" that member in the Mindbody software that maker's edge uses
-* If ID number doesn't match one in the spreadsheet, display some kind of error message that notifies the user that they may not be a member
+* Clean up how the functions are called in the main.js file
+* Figure out how to check in a member in the MindBody service, the API costs money and not sure if checking in a member is possible in the api
+  * May be able to use this to just input the ID number into the sign-in web page: http://nemo.js.org/
+* Pass the member's name to the "Access Granted" page
 
 ## Deployment
 
