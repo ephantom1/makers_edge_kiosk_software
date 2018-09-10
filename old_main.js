@@ -46,6 +46,12 @@ app.on('ready', createWindow)
 ipcMain.on('async', (event, ID_Number) => {
   //console.log(ID_Number) // For DEBUGGING
 
+  // Load client secrets from a local file.
+  fs.readFile('credentials.json', (err, content) => {
+    if (err) return console.log('Error loading client secret file:', err);
+    // Authorize a client with credentials, then call the Google Sheets API.
+    authorize(JSON.parse(content), getNumMembers, ID_Number);                     //TODO: Clean up how the functions are called (use callbacks)
+  });
 })
 
 // Check if all windows are closed
@@ -66,33 +72,6 @@ app.on('activate', function () {
   }
 })
 
-
-async function findMember(ID_Number){
-  // Load client secrets from a local file.
-  fs.readFile('credentials.json', (err, content) => {
-    if (err) return console.log('Error loading client secret file:', err)
-    // Authorize a client with credentials, then call the Google Sheets API.
-    let auth = await authorize(JSON.parse(content))
-  })
-  let sheets = google.sheets({version: 'v4', auth})
-  let numMembers = await getNumMembers(sheets)
-  let member_data = await getIDs_and_Members(sheets, numMembers)
-  try {
-    position = Data[0].indexOf(ID_Number)
-    if (position == -1) throw 'ID not found'
-    membername = Data[1][position]                                                // TODO: Pass the member name to the access granted page so we can display the member's name
-    mainWindow.loadFile('access_granted.html')                                    // TODO: Don't load the new page from function
-    //console.log(Data[1][position])
-  }
-  catch(err) {
-    console.log(err)
-    mainWindow.loadFile('access_denied.html')                                     // TODO: Don't load the new page from function
-  }
-}
-
-
-
-
 // ---------- Google API specific functions -------------
 
 /**
@@ -102,16 +81,16 @@ async function findMember(ID_Number){
  * @param {function} callback The callback to call with the authorized client.
  * @param {variable} ID_Number The ID number to check
  */
-function authorize(credentials) {
+function authorize(credentials, callback, ID_Number) {
   const {client_secret, client_id, redirect_uris} = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
       client_id, client_secret, redirect_uris[0]);
 
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getNewToken(oAuth2Client);
+    if (err) return getNewToken(oAuth2Client, callback);
     oAuth2Client.setCredentials(JSON.parse(token));
-    return oAuth2Client
+    callback(oAuth2Client, ID_Number);
   });
 }
 
@@ -121,12 +100,12 @@ function authorize(credentials) {
  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
  * @param {getEventsCallback} callback The callback for the authorized client.
  */
-function getNewToken(oAuth2Client) {
+function getNewToken(oAuth2Client, callback) {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
   });
-  //console.log('Authorize this app by visiting this url:', authUrl);
+  console.log('Authorize this app by visiting this url:', authUrl);
   //const rl = readline.createInterface({
   //  input: process.stdin,
   //  output: process.stdout,
@@ -142,7 +121,7 @@ function getNewToken(oAuth2Client) {
         if (err) console.error(err);
         console.log('Token stored to', TOKEN_PATH);
       });
-      return oAuth2Client
+      callback(oAuth2Client);
     });
 //  });
 }
@@ -156,7 +135,8 @@ function getNewToken(oAuth2Client) {
  * @param {variable} ID_Number The entered/scanned ID number
  */
 
-function getNumMembers(sheets) {
+function getNumMembers(auth, ID_Number) {
+  const sheets = google.sheets({version: 'v4', auth})
 
   sheets.spreadsheets.values.get({
     spreadsheetId: '1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI',
@@ -165,7 +145,7 @@ function getNumMembers(sheets) {
     valueRenderOption: 'FORMATTED_VALUE'
   }, (err, res) => {
     if (err) return console.log('The get num members API returned an error: ' + err)
-    return res.data.values[0][0] // return the number of members in the spreadsheet
+    getIDs_and_Members(sheets, ID_Number, res.data.values[0][0]) // get all IDs
     //console.log(res.data.values[0][0])
   })
 }
@@ -173,10 +153,11 @@ function getNumMembers(sheets) {
 /**
  * Gets list of all members
  * @param {object} sheets The authenticated google sheets object
+ * @param {variable} ID_Number The entered/scanned ID number
  * @param {variable} numMembers The total number of members
  */
 
-function getIDs_and_Members(sheets, numMembers) {
+function getIDs_and_Members(sheets, ID_Number, numMembers) {
 
   sheets.spreadsheets.values.get({
     spreadsheetId: '1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI',
@@ -185,8 +166,28 @@ function getIDs_and_Members(sheets, numMembers) {
     valueRenderOption: 'FORMATTED_VALUE'
   }, (err, res) => {
     if (err) return console.log('The get IDs API returned an error: ' + err)
-    return res.data.values
+    getMemberName(ID_Number, res.data.values)
     //console.log(res.data.values[0]) // all ID's
     //console.log(res.data.values[1]) // all members
   })
+}
+
+/**
+ * Searches for entered/scanned ID number in list of known IDs
+ * @param {variable} ID_Number The entered/scanned ID number
+ * @param {object} Data 2D array of known member IDs and Names
+ */
+
+function getMemberName(ID_Number, Data){
+  try {
+    position = Data[0].indexOf(ID_Number)
+    if (position == -1) throw 'ID not found'
+    membername = Data[1][position]                                                // TODO: Pass the member name to the access granted page so we can display the member's name
+    mainWindow.loadFile('access_granted.html')                                    // TODO: Don't load the new page from function
+    //console.log(Data[1][position])
+  }
+  catch(err) {
+    console.log(err)
+    mainWindow.loadFile('access_denied.html')                                     // TODO: Don't load the new page from function
+  }
 }
