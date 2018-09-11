@@ -19,6 +19,7 @@ const path = require('path')
 var membername
 var position
 
+
 let mainWindow
 
 function createWindow () {
@@ -45,6 +46,7 @@ app.on('ready', createWindow)
 // Listen for message from renderer process
 ipcMain.on('async', (event, ID_Number) => {
   //console.log(ID_Number) // For DEBUGGING
+  find_member(ID_Number)
 
 })
 
@@ -67,20 +69,25 @@ app.on('activate', function () {
 })
 
 
-async function findMember(ID_Number){
+async function get_member_data(){
   // Load client secrets from a local file.
-  fs.readFile('credentials.json', (err, content) => {
-    if (err) return console.log('Error loading client secret file:', err)
-    // Authorize a client with credentials, then call the Google Sheets API.
-    let auth = await authorize(JSON.parse(content))
-  })
-  let sheets = google.sheets({version: 'v4', auth})
+
+  let creds = await getCredentials()
+  let auth = await authorize(creds)
+  let sheets = await create_sheets_object(auth)
   let numMembers = await getNumMembers(sheets)
   let member_data = await getIDs_and_Members(sheets, numMembers)
+  return member_data
+}
+
+async function find_member(ID_Number){
+
+  let member_data = await get_member_data()
+  /*
   try {
-    position = Data[0].indexOf(ID_Number)
+    position = member_data[0].indexOf(ID_Number)
     if (position == -1) throw 'ID not found'
-    membername = Data[1][position]                                                // TODO: Pass the member name to the access granted page so we can display the member's name
+    membername = member_data[1][position]                                                // TODO: Pass the member name to the access granted page so we can display the member's name
     mainWindow.loadFile('access_granted.html')                                    // TODO: Don't load the new page from function
     //console.log(Data[1][position])
   }
@@ -88,13 +95,27 @@ async function findMember(ID_Number){
     console.log(err)
     mainWindow.loadFile('access_denied.html')                                     // TODO: Don't load the new page from function
   }
+  */
 }
 
-
-
+function create_sheets_object(auth){
+  console.log('3')
+  return google.sheets({version: 'v4', auth})
+}
 
 // ---------- Google API specific functions -------------
 
+function getCredentials() {
+    console.log('0')
+  fs.readFile('credentials.json', (err, content) => {
+    if (err) return console.log('Error loading client secret file:', err)
+    // Authorize a client with credentials, then call the Google Sheets API.
+    console.log('1')
+    //console.log(content)
+    //console.log(JSON.stringify(JSON.parse(content)))
+    return (JSON.parse(content))
+  })
+}
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.
@@ -103,6 +124,7 @@ async function findMember(ID_Number){
  * @param {variable} ID_Number The ID number to check
  */
 function authorize(credentials) {
+  console.log('2')
   const {client_secret, client_id, redirect_uris} = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
       client_id, client_secret, redirect_uris[0]);
@@ -126,14 +148,14 @@ function getNewToken(oAuth2Client) {
     access_type: 'offline',
     scope: SCOPES,
   });
-  //console.log('Authorize this app by visiting this url:', authUrl);
-  //const rl = readline.createInterface({
-  //  input: process.stdin,
-  //  output: process.stdout,
-  //});
-//  rl.question('Enter the code from that page here: ', (code) => {
-    //rl.close();
-    code = '4/QwBLroPXE_18GmJa0J0fHQeAd9Y7M6sCVn89Bgb9xeA3JLtiOcM2bbg'             // TODO: Make this read the code from some other file or something
+  console.log('Authorize this app by visiting this url:', authUrl);
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  rl.question('Enter the code from that page here: ', (code) => {
+    rl.close();
+    code = '4/VwDP8YI7XzxwUluIDD5zMwqRTSbyT2zNY9O8WdIw31Aho7dXb4ndxJQ'             // TODO: Make this read the code from some other file or something
     oAuth2Client.getToken(code, (err, token) => {
       if (err) return console.error('Error while trying to retrieve access token', err);
       oAuth2Client.setCredentials(token);
@@ -144,7 +166,7 @@ function getNewToken(oAuth2Client) {
       });
       return oAuth2Client
     });
-//  });
+  });
 }
 
 //Uses test spreadsheet located here: https://docs.google.com/spreadsheets/d/1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI/edit#gid=0
@@ -157,7 +179,7 @@ function getNewToken(oAuth2Client) {
  */
 
 function getNumMembers(sheets) {
-
+  console.log('4')
   sheets.spreadsheets.values.get({
     spreadsheetId: '1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI',
     range: 'Sheet1!G1',
@@ -177,7 +199,7 @@ function getNumMembers(sheets) {
  */
 
 function getIDs_and_Members(sheets, numMembers) {
-
+  console.log('5')
   sheets.spreadsheets.values.get({
     spreadsheetId: '1WS2hTayp4sv8GgSFPlZIr6Qq71jsu64kdvoEP_nesGI',
     range: 'Sheet1!A1:B' + numMembers,

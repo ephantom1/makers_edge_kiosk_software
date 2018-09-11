@@ -105,14 +105,14 @@ function getNewToken(oAuth2Client, callback) {
     access_type: 'offline',
     scope: SCOPES,
   });
-  console.log('Authorize this app by visiting this url:', authUrl);
+  //console.log('Authorize this app by visiting this url:', authUrl);
   //const rl = readline.createInterface({
   //  input: process.stdin,
   //  output: process.stdout,
   //});
 //  rl.question('Enter the code from that page here: ', (code) => {
     //rl.close();
-    code = '4/QwBLroPXE_18GmJa0J0fHQeAd9Y7M6sCVn89Bgb9xeA3JLtiOcM2bbg'             // TODO: Make this read the code from some other file or something
+    code = '4/VwDP8YI7XzxwUluIDD5zMwqRTSbyT2zNY9O8WdIw31Aho7dXb4ndxJQ'             // TODO: Make this read the code from some other file or something
     oAuth2Client.getToken(code, (err, token) => {
       if (err) return console.error('Error while trying to retrieve access token', err);
       oAuth2Client.setCredentials(token);
